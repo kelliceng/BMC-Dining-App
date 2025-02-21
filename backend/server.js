@@ -24,29 +24,29 @@ const upload = multer({ storage: storage });
 
 // Middleware
 app.use(cors());
-app.use(express.json());  // To handle JSON request bodies
-app.use(express.urlencoded({ extended: true }));  // To handle form data in requests
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Connect to MongoDB
 connectDB().then(() => {
   console.log("Connected to MongoDB successfully");
 }).catch(err => {
   console.error("Error connecting to MongoDB:", err);
-  process.exit(1);  // Exit on DB failure
+  process.exit(1);
 });
 
-// Example Route
+// Fetch all submissions
 app.get("/api/dining/submissions", async (req, res) => {
   try {
-    const submissions = await DiningItem.find();  // Fetch all submissions from MongoDB
-    res.json(submissions);  // Send the submissions as JSON response
+    const submissions = await DiningItem.find(); // Fetch all submissions from MongoDB
+    res.json(submissions); // Send the submissions as JSON response
   } catch (error) {
     console.error("Error fetching submissions:", error);
     res.status(500).json({ error: "Unable to fetch submissions" });
   }
 });
 
-// Route for adding submissions
+// Add a new submission
 app.post("/api/dining/add", upload.single("mediaFile"), async (req, res) => {
   console.log("Received request at /api/dining/add");
   console.log("Received Body:", req.body);
@@ -69,7 +69,7 @@ app.post("/api/dining/add", upload.single("mediaFile"), async (req, res) => {
     console.log("Uploading to Cloudinary...");
     const result = await new Promise((resolve, reject) => {
       const stream = cloudinary.uploader.upload_stream(
-        { 
+        {
           resource_type: mediaType,
           public_id: `${name}_${Date.now()}`,
         },
@@ -98,29 +98,17 @@ app.post("/api/dining/add", upload.single("mediaFile"), async (req, res) => {
 
     await newItem.save();
     console.log("Saved to MongoDB:", newItem);
-    res.status(201).json(newItem);  // Respond with the new submission
-
+    res.status(201).json(newItem); // Respond with the new submission
   } catch (error) {
     console.log("General error in try-catch:", error);
     res.status(500).json({ error: `Server error: ${error.message}` });
   }
 });
 
-app.get("/api/dining/submissions", async (req, res) => {
-  try {
-    const submissions = await DiningItem.find();  // Fetch all submissions from MongoDB
-    res.json(submissions);  // Send the submissions as JSON response
-  } catch (error) {
-    console.error("Error fetching submissions:", error);
-    res.status(500).json({ error: "Unable to fetch submissions" });
-  }
-});
-
-
 // 404 Error handler
 app.use((req, res) => {
   res.status(404).json({ error: "Not Found" });
 });
 
-// Start Server
+// Start the server
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
