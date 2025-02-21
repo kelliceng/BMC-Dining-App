@@ -36,8 +36,14 @@ connectDB().then(() => {
 });
 
 // Example Route
-app.get("/", (req, res) => {
-  res.send("BMC Dining App Backend Running!");
+app.get("/api/dining/submissions", async (req, res) => {
+  try {
+    const submissions = await DiningItem.find();  // Fetch all submissions from MongoDB
+    res.json(submissions);  // Send the submissions as JSON response
+  } catch (error) {
+    console.error("Error fetching submissions:", error);
+    res.status(500).json({ error: "Unable to fetch submissions" });
+  }
 });
 
 // Route for adding submissions
